@@ -1,15 +1,9 @@
 import pandas as pd
 
-# Завдання для всіх варіантів
-# 1. Завантажити дані з файлу data/sales_data.csv у DataFrame.
-# 2. Вивести перші 5 рядків DataFrame, отримати загальну інформацію про нього та статистичні характеристики числових стовпців.
-
-# Ваш код починається тут
-
-# 1. Завантаження даних
+# Завантаження даних
 df = pd.read_csv('data/sales_data.csv', parse_dates=['date'])
 
-# 2. Первинний аналіз даних
+# Первинний аналіз даних
 print("Перші 5 рядків:")
 print(df.head())
 print("\nЗагальна інформація:")
@@ -17,46 +11,37 @@ df.info()
 print("\nСтатистичні характеристики:")
 print(df.describe())
 
+# Фільтрація даних (quantity більше середнього значення quantity по всьому DataFrame)
+filtered_df = df[df['quantity'] > df['quantity'].mean()]
+print("\nВідфільтровані дані (quantity > середнього):")
+print(filtered_df)
 
-# Подальший код для вашого варіанту
+# Сортування даних (за date та price у порядку спадання)
+sorted_df = df.sort_values(by=['date', 'price'], ascending=[False, False])
+print("\nВідсортовані дані:")
+print(sorted_df)
 
-# Приклад виконання завдання (з лекції)
-# Розкоментуйте та адаптуйте для свого варіанту
+# Групування та агрегування даних (мінімальна та максимальна ціна для кожного товару в магазині)
+grouped_df = df.groupby(['store_id', 'product_id'])['price'].agg(['min', 'max']).reset_index()
+print("\nЗгруповані дані (мінімальна та максимальна ціна):")
+print(grouped_df)
 
-# # 3. Фільтрація даних
-# filtered_df = df[(df['store_id'] == 1) & (df['quantity'] > 2)]
-# print("\nВідфільтровані дані:")
-# print(filtered_df)
-#
-# # 4. Сортування даних
-# sorted_df = df.sort_values(by=['date', 'order_id'], ascending=[True, False])
-# print("\nВідсортовані дані:")
-# print(sorted_df)
-#
-# # 5. Групування та агрегування даних
-# grouped_df = df.groupby(['store_id', 'product_id'])['quantity'].sum().reset_index()
-# print("\nЗгруповані дані:")
-# print(grouped_df)
-#
-# # 6. Додавання стовпця
-# # Спочатку обробимо пропущені значення в 'price', щоб уникнути помилок
-# df['price'] = df.groupby('store_id')['price'].transform(lambda x: x.fillna(x.mean()))
-# df['total_amount'] = df['quantity'] * df['price']
-# print("\nДані з новим стовпцем total_amount:")
-# print(df)
-#
-# # 7. Видалення стовпців
-# df_after_drop = df.drop(columns=['order_id', 'product_id'])
-# print("\nДані після видалення стовпців:")
-# print(df_after_drop)
-#
-# # 8. Обробка пропущених значень (вже частково зроблено)
-# # df['price'] = df.groupby('store_id')['price'].transform(lambda x: x.fillna(x.mean()))
-# print("\nДані після заповнення пропущених значень в 'price':")
-# print(df)
-#
-# # 9. Створення зведеної таблиці
-# df['month'] = df['date'].dt.month
-# pivot_table = df.pivot_table(values='total_amount', index='store_id', columns='month', aggfunc='sum')
-# print("\nЗведена таблиця:")
-# print(pivot_table)
+# Додавання стовпця (день тижня, витягнутий з date)
+df['day_of_week'] = df['date'].dt.day_name()
+print("\nДані з новим стовпцем day_of_week:")
+print(df)
+
+# Видалення рядків (видалити всі рядки, де store_id дорівнює 3)
+df_after_drop = df[df['store_id'] != 3].copy()
+print("\nДані після видалення рядків зі store_id == 3:")
+print(df_after_drop)
+
+# Обробка пропущених значень (замінити NaN в price на середнє значення ціни для відповідного product_id)
+df_after_drop['price'] = df_after_drop.groupby('product_id')['price'].transform(lambda x: x.fillna(x.mean()))
+print("\nДані після заповнення пропущених значень в 'price':")
+print(df_after_drop)
+
+# Створення зведеної таблиці (рядки - store_id, стовпці - day_of_week, комірки - середнє quantity)
+pivot_table = df_after_drop.pivot_table(values='quantity', index='store_id', columns='day_of_week', aggfunc='mean')
+print("\nЗведена таблиця:")
+print(pivot_table)
